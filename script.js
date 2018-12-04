@@ -21,8 +21,10 @@ function generateGeoJSON(dataset) {
     console.log(dataset.data);
     let datapoints = generateFeatures(dataset.data);
     let geojson = `{
-        "type": "featureCollection",
-        "features": ${datapoints}
+        "type": "FeatureCollection",
+        "features": [
+            ${datapoints}
+        ]
     }`;
 
     return geojson;
@@ -33,24 +35,26 @@ function generateGeoJSON(dataset) {
 //Line breaks are also formatted out.
 function generateFeatures(featuresArr) {
     let features = featuresArr.map((val, i) => {
-        return `{
+        return `
+        {
             "type": "Feature",
             "properties": {
                 "name": ${checkNull(val["Name"])},
                 "address": ${checkNull(val["Address"])},
                 "status": ${checkNull(val["Status"])},
+                "simpleStatus": ${checkNull(val["Status_Simple"])},
                 "owner": ${checkNull(val["Owner"])},
                 "ownerType": ${checkNull(val["Owner Type"])},
                 "operator": ${checkNull(val["Operator"])},
                 "developer": ${checkNull(val["Developer"])},
-                "capacityMWElectric": ${checkNull(val["Capacity MW electricity"])},
-                "capacityMWGas": ${checkNull(val["Capacity MW gas"])},
-                "capacityMWHeat": ${checkNull(val["Capacity MW heat"])},
+                "capacityMWElectric": ${nullToZero(checkNull(val["Capacity MW electricity"]))},
+                "capacityMWGas": ${nullToZero(checkNull(val["Capacity MW gas"]))},
+                "capacityMWHeat": ${nullToZero(checkNull(val["Capacity MW heat"]))},
                 "simpleRenewableTechnology": ${checkNull(val["Simple Renewable Technology  Type"])},
                 "typologyOfTechnology": ${checkNull(val["Typology Of Technology"])},
                 "technologyProvider": ${checkNull(val["Technology Provider"])},
                 "potentialCarbonReduction": ${checkNull(val["Potential Carbon Reduction (tonnes)"])},
-                "calcCarbonReduction": ${checkNull(val["Calculated or Disclosed Carbon Reduction (Tonnes per year)"])},
+                "calcCarbonReduction": ${nullToZero(checkNull(val["Calculated Carbon Reduction (Tonnes per year)"]))},
                 "conditionsForDeployment": ${checkNull(val["Conditions For Deployment"])},
                 "timetable": ${checkNull(val["Timetable"])},
                 "otherAssociatedInfrastructure": ${checkNull(val["Other Associated Infrastructure"])},
@@ -77,10 +81,20 @@ function generateFeatures(featuresArr) {
 
 //checkNull() replaces null values with an empty string, and strips non-null values of line breaks.
 function checkNull(val) {
-    if (val == "") {
+    console.log(val);
+    if (val == "" || val == undefined) {
         return '""';
     } else {
         return `"${val.replace(/\r?\n|\r/g, "<br/>")}"`;
+    }
+}
+
+//This function returns "0" instead of an empty string for fields where that is desirable.
+function nullToZero(val) {
+    if (val == '""') {
+        return '"0"';
+    } else {
+        return val;
     }
 }
 
